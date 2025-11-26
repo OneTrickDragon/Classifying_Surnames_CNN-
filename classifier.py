@@ -67,3 +67,29 @@ class Vocabulary(object):
     
     def __len__(self):
         return len(self._token_to_idx)
+    
+class SurnameClassifier(nn.Module):
+    def __init__(self, initial_num_channels, num_classes, num_channels):
+        super(SurnameClassifier, self).__init__()
+
+        self.convnet = nn.Sequential(
+            nn.Conv1d(in_channels = initial_num_channels,
+            out_channels = num_channels, kernel_size = 3), 
+            nn.ELU(),
+            nn.Conv1d(in_channels=num_channels, out_channels=num_channels, kernel_size=3, stride=2),
+            nn.ELU(),
+            nn.Conv1d(in_channels=num_channels, out_channels=num_channels, kernel_size=3, stride=2),
+            nn.ELU(),
+            nn.Conv1d(in_channels=num_channels, out_channels=num_channels, kernel_size=3),
+            nn.ELU()
+        )
+
+        self.fc == nn.Linear(num_channels, num_channels)
+
+    def forward(self, x_surname, apply_softmax=True):
+        features = self.convnet(x_surname).squeeze(dim=2)
+        prediction_vector = self.fc(features)
+
+        if apply_softmax:
+            prediction_vector = F.softmax(prediction_vector, dim=1)
+        return prediction_vector
