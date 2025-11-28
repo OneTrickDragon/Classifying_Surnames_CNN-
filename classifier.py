@@ -563,3 +563,37 @@ prediction = predict_nationality(new_surname, classifier, vectorizer)
 print("{} -> {} (p={:0.2f})".format(new_surname,
                                     prediction['nationality'],
                                     prediction['probability']))
+
+def predict_topk_nationality(surname, classifier, vectorizer, k=5):
+
+    vectorized_surname = vectorizer.vectorize(surname)
+    vectorized_surname = torch.tensor(vectorized_surname).unsqueeze(dim=0)
+    prediction_vector = classifier(vectorized_surname, apply_softmax=True)
+    probability_values, indices = torch.topk(prediction_vector, k=k)
+
+    probability_values = probability_values[0].detach().numpy()
+    indices = indices[0].detach().numpy()
+
+    results = []
+    for kth_index in range(k):
+        nationality = vectorizer.nationality_vocab.lookup_index(indices[kth_index])
+        probability_value = probability_values[kth_index]
+        results.append({'nationality': nationality, 
+                        'probability': probability_value})
+    return results
+
+new_surname = input("Enter a surname to classify: ")
+
+k = int(input("How many of the top predictions to see? "))
+if k > len(vectorizer.nationality_vocab):
+    print("Sorry! That's more than the # of nationalities we have.. defaulting you to max size :)")
+    k = len(vectorizer.nationality_vocab)
+    
+predictions = predict_topk_nationality(new_surname, classifier, vectorizer, k=k)
+
+print("Top {} predictions:".format(k))
+print("===================")
+for prediction in predictions:
+    print("{} -> {} (p={:0.2f})".format(new_surname,
+                                        prediction['nationality'],
+                                        prediction['probability']))
