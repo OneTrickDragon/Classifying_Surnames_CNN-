@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 class Vocabulary(object):
     """Class to process text and extract vocabulary for mapping"""
@@ -261,7 +261,7 @@ class SurnameClassifier(nn.Module):
             nn.ELU()
         )
 
-        self.fc == nn.Linear(num_channels, num_channels)
+        self.fc = nn.Linear(num_channels, num_classes)
 
     def forward(self, x_surname, apply_softmax=True):
         features = self.convnet(x_surname).squeeze(dim=2)
@@ -458,8 +458,8 @@ try:
             train_bar.set_postfix(loss=running_loss, acc=running_acc, epoch=epoch_index)
             train_bar.update()
         
-        train_state['running_loss'].append(running_loss)
-        train_state['running_acc'].append(running_acc)
+        train_state['train_loss'].append(running_loss)
+        train_state['train_acc'].append(running_acc)
 
         dataset.set_split('val')
 
@@ -491,7 +491,7 @@ try:
         
         scheduler.step(train_state['val_loss'][-1])
 
-        if train_state['early_stop']:
+        if train_state['stop_early']:
             break
 
         train_bar.n = 0
